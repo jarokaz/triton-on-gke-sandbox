@@ -50,7 +50,7 @@ export NETWORK_NAME=jk-gke-network
 export SUBNET_NAME=jk-gke-subnet
 export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
-export TRITON_SA_NAME=triton_sa
+export TRITON_SA_NAME=triton-sa
 export TRITON_SA_NAMESPACE=default
 
 ```
@@ -119,8 +119,8 @@ Update the `configs.env` file with the values appropriate for your deployment. T
 
 ```
 cat << EOF > ~/triton-on-gke-sandbox/env-setup/kustomize/configs.env
-model_repository="${GCS_BUCKET_NAME}/model_repository"
-ksa="${TRITON_SA_NAME}"
+model_repository=gs://${GCS_BUCKET_NAME}/model_repository
+ksa=${TRITON_SA_NAME}
 EOF
 ```
 
