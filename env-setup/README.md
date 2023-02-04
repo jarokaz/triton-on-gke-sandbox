@@ -1,7 +1,9 @@
 # Setting up the environment
 
 
+## Create infrastructure
 
+Update the environment variables to reflect your environment
 
 ```
 export PROJECT_ID=jk-mlops-dev
@@ -13,6 +15,8 @@ export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
 
 ```
+
+Run terraform
 
 ```
 terraform init
@@ -27,32 +31,7 @@ terraform apply \
 
 ```
 
-```
-terraform destroy \
--var=project_id=$PROJECT_ID \
--var=region=$REGION \
--var=zone=$ZONE \
--var=network_name=$NETWORK_NAME \
--var=subnet_name=$SUBNET_NAME \
--var=repository_bucket_name=$GCS_BUCKET_NAME \
--var=cluster_name=$GKE_CLUSTER_NAME 
-
-```
-
-```
-terraform destroy \
---target google_storage_bucket.model_repository \
--var=project_id=$PROJECT_ID \
--var=region=$REGION \
--var=zone=$ZONE \
--var=network_name=$NETWORK_NAME \
--var=subnet_name=$SUBNET_NAME \
--var=repository_bucket_name=$GCS_BUCKET_NAME \
--var=cluster_name=$GKE_CLUSTER_NAME
-
-
-```
-
+## Deploy NVIDIA drivers
 
 ### Configure access to the cluster
 
@@ -66,20 +45,22 @@ Make sure you can run kubectl locally to access the cluster
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user "$(gcloud config get-value account)"
 ```
 
-### Deploy NVIDIA drivers
+### Deploy NVIDIA drivers installer demaenset
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml 
 ```
 
 
-### Deploy Triton Inference Server
+## Deploy Triton Inference Server
 
-#### Enable Managed Prometheous
+### Enable Managed Prometheous
 
-TBD
+```
+gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus --zone $ZONE
+```
 
-#### Copy sample models to the repository
+### Copy sample models to the repository
 
 TBD
 
@@ -87,16 +68,29 @@ TBD
 
 gsutil cp -r gs://jk-triton-repository-archive/model_repository gs://${GCS_BUCKET_NAME} 
 
-#### Modify kustomize
-
-TBD
-
-#### Deploy components
+### Set kustomize parameters
 
 ```
-
 cd ~/triton-on-gke-sandbox/env-setup/kustomize
+```
 
+```
+cat << EOF > ~/triton-on-gke-sandbox/env-setup/kustomize/configs.env
+model_repository=gs://jk-triton-repository/model_repository
+ksa=triton-ksa
+```
+
+### Deploy components
+
+Validate configurations
+
+```
+kubectl kustomize ./
+```
+
+Deploy
+
+```
 kubectl apply -k ./
 
 ```
@@ -125,6 +119,36 @@ docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 /workspace/install/bin/image_client -u  <YOUR IP ADDRESS>:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
+
+## Clean up
+
+Set the environment variables
+
+```
+export PROJECT_ID=jk-mlops-dev
+export REGION=us-central1
+export ZONE=us-central1-a
+export NETWORK_NAME=jk-gke-network
+export SUBNET_NAME=jk-gke-subnet
+export GCS_BUCKET_NAME=jk-triton-repository
+export GKE_CLUSTER_NAME=jk-ft-gke
+
+```
+Run Terraform
+
+```
+terraform destroy \
+-var=project_id=$PROJECT_ID \
+-var=region=$REGION \
+-var=zone=$ZONE \
+-var=network_name=$NETWORK_NAME \
+-var=subnet_name=$SUBNET_NAME \
+-var=repository_bucket_name=$GCS_BUCKET_NAME \
+-var=cluster_name=$GKE_CLUSTER_NAME 
+
+```
+
+# TO BE REMOVED
 
 
 ## Accessing NVIDIA bignlp-container
