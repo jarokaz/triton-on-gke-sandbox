@@ -73,168 +73,59 @@ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container
 ```
 
 
-#### Test driver installation
-
-```
-kubectl apply -f nvidia-smi.yaml
-
-kubectl get pods
-
-kubectl logs <POD>
-
-kubectl delete -f nvidia-smi.yaml
-```
-
-
 ### Deploy Triton Inference Server
 
-#### Clone Triton repo
+#### Enable Managed Prometheous
 
-```
-git clone https://github.com/triton-inference-server/server.git
-cd server/deploy/gcp
-```
-
-
-#### Create a bucket for model repository
-
-```
-gsutil mb gs://jk-triton-repository
-
-```
+TBD
 
 #### Copy sample models to the repository
 
-```
-gsutil cp -r docs/examples/model_repository gs://jk-triton-repository/model_repository
-```
+TBD
 
+`gs://jk-triton-repository-archive` is public. The new NVIDIA Triton github repo seems to be missing example model files.
 
-#### Install Prometheus and Grafana 
+gsutil cp -r gs://jk-triton-repository-archive/model_repository gs://${GCS_BUCKET_NAME} 
 
-```
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add grafana https://grafana.github.io/helm-charts
+#### Modify kustomize
 
-helm install example-metrics --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false prometheus-community/kube-prometheus-stack
-```
+TBD
 
-###### Verify installation
-
-In Cloud Shell
-
-```
-kubectl port-forward service/example-metrics-grafana 8080:80
+#### Deploy components
 
 ```
 
+cd ~/triton-on-gke-sandbox/env-setup/kustomize
 
-#### Install Triton helm chart
-
-Config the chart
-
-cat << EOF > ~/server/deploy/gcp/config.yaml
-namespace: default
-image:
-  imageName: gcr.io/jk-mlops-dev/bignlp-inference:22.08-py3
-  modelRepositoryPath: gs://jk-triton-repository/model_repository
-serviceAccountName: triton-ksa
-EOF
-
-
-cat << EOF > ~/server/deploy/gcp/templates/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ template "triton-inference-server.fullname" . }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    app: {{ template "triton-inference-server.name" . }}
-    chart: {{ template "triton-inference-server.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-spec:
-  replicas: {{ .Values.replicaCount }}
-  selector:
-    matchLabels:
-      app: {{ template "triton-inference-server.name" . }}
-      release: {{ .Release.Name }}
-  template:
-    metadata:
-      labels:
-        app: {{ template "triton-inference-server.name" . }}
-        release: {{ .Release.Name }}
-
-    spec:
-      containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.imageName }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-
-          resources:
-            limits:
-              nvidia.com/gpu: {{ .Values.image.numGpus }}
-
-          args: ["tritonserver", "--model-store={{ .Values.image.modelRepositoryPath }}"]
-
-          ports:
-            - containerPort: 8000
-              name: http
-            - containerPort: 8001
-              name: grpc
-            - containerPort: 8002
-              name: metrics
-          livenessProbe:
-            httpGet:
-              path: /v2/health/live
-              port: http
-          readinessProbe:
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            httpGet:
-              path: /v2/health/ready
-              port: http
-
-      serviceAccountName: {{ .Values.serviceAccountName }}
-      nodeSelector:
-        iam.gke.io/gke-metadata-server-enabled: "true"
-      securityContext:
-        runAsUser: 1000
-        fsGroup: 1000
-EOF
-
-
-Install the chart
+kubectl apply -k ./
 
 ```
-cd ~/server/deploy/gcp
 
-helm install triton -f config.yaml . 
-```
+#### Run healthcheck
 
-Run healthcheck
+Get external IP address of Triton service
 
 ```
-kubectl port-forward $(kubectl get pod --selector="app=triton-inference-server" \
-  --output jsonpath='{.items[0].metadata.name}') 8000:8000
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/v2/health/ready
+kubectl get services
 ```
 
-```
-curl -s -o /dev/null -w "%{http_code}" http://34.70.95.90:8000/v2/health/ready
-```
 
 ```
-curl -v 35.232.27.33:8000/v2/health/ready
+TRITON_IP_ADDRESS=<YOUR IP ADDRESS>
+
+curl -v ${TRITON_IP_ADDRESS}:8000/v2/health/ready
 ```
+
+#### Test the sample model
 
 ```
 docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 
 ```
-/workspace/install/bin/image_client -u  35.232.27.33:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
+/workspace/install/bin/image_client -u  <YOUR IP ADDRESS>:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
+
 
 ## Accessing NVIDIA bignlp-container
 

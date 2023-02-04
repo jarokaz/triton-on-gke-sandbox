@@ -32,11 +32,16 @@ spec:
         - name: triton-inference-server 
           image: nvcr.io/nvidia/tritonserver:23.01-py3 
           imagePullPolicy: IfNotPresent
-
           resources:
             limits:
               nvidia.com/gpu: 1
-          args: ["tritonserver", "--model-store=/models"]
+          args: ["tritonserver", "--model-store=$(MODEL_REPOSITORY)"]
+          env:
+            - name: MODEL_REPOSITORY
+              valueFrom:
+                configMapKeyRef:
+                  key: model_repository 
+                  name: triton-configs
           ports:
             - containerPort: 8000
               name: http
