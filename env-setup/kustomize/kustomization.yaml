@@ -32,11 +32,25 @@ images:
   - name: nvcr.io/nvidia/tritonserver
     newName: gcr.io/jk-mlops-dev/bignlp-inference
     newTag: 22.08-py3
-   
+
+replacements:
+- source:
+    kind: ConfigMap
+    name: triton-configs
+    fieldPath: data.ksa
+  targets:
+  - select:
+      kind: Deployment
+      name: triton-server-deployment
+    fieldPaths:
+      - spec.template.spec.serviceAccountName
 
 configMapGenerator:
 - name: triton-configs
   envs:
   - configs.env
+
+
+
 
 
