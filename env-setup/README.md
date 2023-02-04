@@ -50,6 +50,8 @@ export NETWORK_NAME=jk-gke-network
 export SUBNET_NAME=jk-gke-subnet
 export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
+export TRITON_SA_NAME=triton_sa
+export TRITON_SA_NAMESPACE=default
 
 ```
 
@@ -64,7 +66,9 @@ terraform apply \
 -var=network_name=$NETWORK_NAME \
 -var=subnet_name=$SUBNET_NAME \
 -var=repository_bucket_name=$GCS_BUCKET_NAME \
--var=cluster_name=$GKE_CLUSTER_NAME 
+-var=cluster_name=$GKE_CLUSTER_NAME \
+-var=triton_sa_name=$TRITON_SA_NAME \
+-var=triton_sa_namespace=$TRITON_SA_NAMESPACE
 
 ```
 
@@ -167,6 +171,8 @@ export NETWORK_NAME=jk-gke-network
 export SUBNET_NAME=jk-gke-subnet
 export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
+export TRITON_SA_NAME=triton_sa
+export TRITON_SA_NAMESPACE=default
 
 ```
 Run Terraform
@@ -179,7 +185,9 @@ terraform destroy \
 -var=network_name=$NETWORK_NAME \
 -var=subnet_name=$SUBNET_NAME \
 -var=repository_bucket_name=$GCS_BUCKET_NAME \
--var=cluster_name=$GKE_CLUSTER_NAME 
+-var=cluster_name=$GKE_CLUSTER_NAME \
+-var=triton_sa_name=$TRITON_SA_NAME \
+-var=triton_sa_namespace=$TRITON_SA_NAMESPACE
 
 ```
 
@@ -223,40 +231,3 @@ docker push gcr.io/jk-mlops-dev/bignlp-inference:22.08-py3
 
 
 
-#### Generate and store service account key for Triton
-
-```
-gcloud iam service-accounts keys create gcp-creds.json \
-    --iam-account=gke-sa@jk-mlops-dev.iam.gserviceaccount.com
-```
-
-```
-kubectl create configmap gcpcreds --from-literal "project-id=jk-mlops-dev"
-kubectl create secret generic gcpcreds --from-file gcp-creds.json
-```
-
-### Recovery
-
-gcloud projects add-iam-policy-binding jk-mlops-dev \
-  --member serviceAccount:895222332033@cloudservices.gserviceaccount.com \
-  --role roles/editor
-
-
-
-  ## Manual setup
-
-export PROJECT_ID=jk-mlops-dev
-export ZONE=us-central1-a
-export REGION=us-central1
-export DEPLOYMENT_NAME=jk-triton-gke-1
-
-
-
-gcloud iam service-accounts add-iam-policy-binding triton-sa@jk-mlops-dev.iam.gserviceaccount.com \
-    --role roles/iam.workloadIdentityUser \
-    --member "serviceAccount:jk-mlops-dev.svc.id.goog[default/triton-ksa]"
-
-
-kubectl annotate serviceaccount triton-ksa \
-    --namespace default \
-    iam.gke.io/gcp-service-account=triton-sa@jk-mlops-dev.iam.gserviceaccount.com
