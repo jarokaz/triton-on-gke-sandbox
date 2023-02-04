@@ -26,6 +26,7 @@ module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google"
   project_id                 = data.google_project.project.project_id
   name                       = var.cluster_name
+  release_channel            = "REGULAR"
   regional                   = false 
   zones                      = [var.zone]
   network                    = google_compute_network.cluster_network.name
@@ -38,7 +39,10 @@ module "gke" {
   filestore_csi_driver       = false
   remove_default_node_pool   = true
   create_service_account     = true 
-  grant_registry_access      = true    
+  grant_registry_access      = true   
+  identity_namespace         = "${data.google_project.project.project_id}.svc.id.goog" 
+  
+  cluster_resource_labels = { "mesh_id" : "proj-${data.google_project.project.number}" }
 
   node_pools = [
     {
@@ -70,54 +74,8 @@ module "gke" {
         "https://www.googleapis.com/auth/cloud-platform", 
     ]
   }
-
-  #node_pools_labels = {
-  #  all = {}
-  # 
-  #  triton-node-pool = {
-  #    default-node-pool = true
-  #  }
-  #}
-
-  #node_pools_metadata = {
-  #  all = {}
-  #
-  #  default-node-pool = {
-  #    node-pool-metadata-custom-value = "my-node-pool"
-  #  }
-  #}
-
-  #node_pools_taints = {
-  #  all = []
-  #
-  #  default-node-pool = [
-  #    {
-  #      key    = "default-node-pool"
-  #      value  = true
-  #      effect = "PREFER_NO_SCHEDULE"
-  #    },
-  #  ]
-  #}
-
-  #node_pools_tags = {
-  #  all = []
-  #
-  #  default-node-pool = [
-  #    "default-node-pool",
-  #  ]
-  #}
 }
 
-#resource "kubernetes_service_account" "triton_ksa" {
-#  metadata {
-#    name      = var.triton_ksa_name
-#    namespace = var.triton_ksa_namespace
-#
-#    annotations = {
-#      "iam.gke.io/gcp-service-account" = google_service_account.triton_sa.email
-#    } 
-#  }
-#}
 
 module "triton_workload_identity" {
   source       = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
@@ -125,6 +83,17 @@ module "triton_workload_identity" {
   name         = var.triton_sa_name 
   namespace    = var.triton_sa_namespace
   roles        = var.triton_sa_roles
+}
+
+
+module "asm" {
+  source                    = "terraform-google-modules/kubernetes-engine/google//modules/asm"
+  project_id                = data.google_project.project.project_id
+  cluster_name              = module.gke.name
+  cluster_location          = module.gke.location
+  enable_cni                = false
+  enable_fleet_registration = true
+  enable_mesh_feature       = false 
 }
 
 

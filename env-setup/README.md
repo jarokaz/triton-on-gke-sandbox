@@ -1,9 +1,46 @@
 # Setting up the environment
 
+- Architecture diagram TBD
+- Architecture description TBD. 
 
-## Create infrastructure
+## Enable the required services
 
-Update the environment variables to reflect your environment
+From [Cloud Shell](https://cloud.google.com/shell/docs/using-cloud-shelld.google.com/shell/docs/using-cloud-shell), run the following commands to enable the required Cloud APIs:
+
+```bash
+export PROJECT_ID=<YOUR_PROJECT_ID>
+ 
+gcloud config set project $PROJECT_ID
+ 
+gcloud services enable \
+  cloudbuild.googleapis.com \
+  compute.googleapis.com \
+  cloudresourcemanager.googleapis.com \
+  iam.googleapis.com \
+  container.googleapis.com \
+  cloudapis.googleapis.com \
+  cloudtrace.googleapis.com \
+  containerregistry.googleapis.com \
+  iamcredentials.googleapis.com \
+  monitoring.googleapis.com \
+  logging.googleapis.com \
+  storage.googleapis.com \
+  mesh.googleapis.com
+```
+
+## Enable the Anthos Service Mesh fleet feature
+
+The Terraform configuration that provisions a GKE cluster and auxiliary components assumes that the Anthos Service Mesh fleet feature has been enabled. It is assumed that the fleet project is the same as the cluster project.
+
+```
+gcloud container fleet mesh enable --project $PROJECT_ID
+```
+
+## Provision infrastructure
+
+Use Terraform to provision the infrastructure described in the overview section.
+
+Update the environment variables to reflect your environment resource names.
 
 ```
 export PROJECT_ID=jk-mlops-dev
@@ -47,65 +84,6 @@ kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-ad
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml 
 ```
 
-## Provision Managed Anthos Mesh
-
-You will use fleet API to provision managed Anthos Mesh
-
-### Enable Mesh API
-
-```
-gcloud services enable mesh.googleapis.com \
-    --project=$PROJECT_ID
-```
-
-### Enable the Anthos Service Mesh fleet feature
-
-```
-gcloud container fleet mesh enable --project $PROJECT_ID
-```
-
-### Register the cluster to a fleet
-
-```
-export MEMBERSHIP_NAME=jk-triton-cluster
-export GKE_URI="https://container.googleapi.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${GKE_CLUSTER_NAME}"
-
-gcloud container fleet memberships register $MEMBERSHIP_NAME \
-  --gke-uri=$GKE_URI \
-  --enable-workload-identity \
-  --project $PROJECT_ID
-```
-
- ### Verify registration
-
- ```
- gcloud container fleet memberships list --project $PROJECT_ID
- ```
-
-### Apply the mesh_id label
-
-```
-export PROJECT_NUMBER=895222332033
-export MESH_ID="proj-$PROJECT_NUMBER"
-
-gcloud container clusters update  --project $PROJECT_ID $GKE_CLUSTER_NAME \
-  --zone $ZONE --update-labels mesh_id=$MESH_ID
-```
-
-### Enable automatic management
-
-```
-gcloud container fleet mesh update \
-     --management automatic \
-     --memberships $MEMBERSHIP_NAME \
-     --project $PROJECT_ID
-```
-
-### Verify the contorl plane has been provisioned
-
-```
-gcloud container fleet mesh describe --project $PROJECT_ID
-```
 
 ## Enable Managed Prometheous
 
@@ -133,7 +111,7 @@ cd ~/triton-on-gke-sandbox/env-setup/kustomize
 ```
 cat << EOF > ~/triton-on-gke-sandbox/env-setup/kustomize/configs.env
 model_repository=gs://jk-triton-repository/model_repository
-ksa=triton-ksa
+ksa=triton-sa
 EOF
 ```
 
