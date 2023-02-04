@@ -106,16 +106,21 @@ TBD
 
 gsutil cp -r gs://jk-triton-repository-archive/model_repository gs://${GCS_BUCKET_NAME} 
 
-### Set kustomize parameters
+### Configure Triton Deployment parameters 
 
 ```
 cd ~/triton-on-gke-sandbox/env-setup/kustomize
 ```
 
+Update the `configs.env` file with the values appropriate for your deployment. The following parameters are required
+
+- `model_repository` - The GCS path to Triton model repository
+- `ksa` - The name of Triton service account that was provisioned during the setup
+
 ```
 cat << EOF > ~/triton-on-gke-sandbox/env-setup/kustomize/configs.env
-model_repository=gs://jk-triton-repository/model_repository
-ksa=triton-sa
+model_repository="${GCS_BUCKET_NAME}/model_repository"
+ksa="${TRITON_SA_NAME}"
 EOF
 ```
 
