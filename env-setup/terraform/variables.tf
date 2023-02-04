@@ -66,24 +66,19 @@ variable "disk_type" {
 }
 
 variable "triton_sa_name" {
-    description = "The name of the IAM service account that will be used by Triton deployment."
+    description = "The service account name for Triton workload identity."
     default = "triton-sa"
 }
 
 variable "triton_sa_roles" {
   description = "The roles to assign to the Triton service account"
   default = [
-    "storage.objectViewer",
+    "roles/storage.objectViewer",
     ] 
 }
 
-variable "triton_ksa_name" {
-    description = "The name of the K8s service account that will be used by Triton deployment."
-    default = "triton-ksa"
-}
-
-variable "triton_ksa_namespace" {
-    description = "The namespace of the K8s service account that will be used by Triton deployment."
+variable "triton_sa_namespace" {
+    description = "The namespace of the K8s service account for workload identity ."
     default = "default"
 }
 

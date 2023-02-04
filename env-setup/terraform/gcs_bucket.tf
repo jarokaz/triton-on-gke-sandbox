@@ -26,5 +26,5 @@ resource "google_storage_bucket" "model_repository" {
 resource "google_storage_bucket_iam_member" "triton_sa_repository_permissions" {
   bucket = google_storage_bucket.model_repository.name
   role = "roles/storage.legacyBucketReader"
-  member = "serviceAccount:${google_service_account.triton_sa.email}"
+  member = "serviceAccount:${module.triton_workload_identity.gcp_service_account_email}"
 }

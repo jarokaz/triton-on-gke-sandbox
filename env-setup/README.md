@@ -31,34 +31,90 @@ terraform apply \
 
 ```
 
-## Deploy NVIDIA drivers
-
-### Configure access to the cluster
+## Configure access to the cluster
 
 ```
 gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE} 
 ```
 
-Make sure you can run kubectl locally to access the cluster
-
 ```
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user "$(gcloud config get-value account)"
 ```
 
-### Deploy NVIDIA drivers installer demaenset
+## Deploy NVIDIA drivers
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml 
 ```
 
+## Provision Managed Anthos Mesh
 
-## Deploy Triton Inference Server
+You will use fleet API to provision managed Anthos Mesh
 
-### Enable Managed Prometheous
+### Enable Mesh API
+
+```
+gcloud services enable mesh.googleapis.com \
+    --project=$PROJECT_ID
+```
+
+### Enable the Anthos Service Mesh fleet feature
+
+```
+gcloud container fleet mesh enable --project $PROJECT_ID
+```
+
+### Register the cluster to a fleet
+
+```
+export MEMBERSHIP_NAME=jk-triton-cluster
+export GKE_URI="https://container.googleapi.com/v1/projects/${PROJECT_ID}/locations/${ZONE}/clusters/${GKE_CLUSTER_NAME}"
+
+gcloud container fleet memberships register $MEMBERSHIP_NAME \
+  --gke-uri=$GKE_URI \
+  --enable-workload-identity \
+  --project $PROJECT_ID
+```
+
+ ### Verify registration
+
+ ```
+ gcloud container fleet memberships list --project $PROJECT_ID
+ ```
+
+### Apply the mesh_id label
+
+```
+export PROJECT_NUMBER=895222332033
+export MESH_ID="proj-$PROJECT_NUMBER"
+
+gcloud container clusters update  --project $PROJECT_ID $GKE_CLUSTER_NAME \
+  --zone $ZONE --update-labels mesh_id=$MESH_ID
+```
+
+### Enable automatic management
+
+```
+gcloud container fleet mesh update \
+     --management automatic \
+     --memberships $MEMBERSHIP_NAME \
+     --project $PROJECT_ID
+```
+
+### Verify the contorl plane has been provisioned
+
+```
+gcloud container fleet mesh describe --project $PROJECT_ID
+```
+
+## Enable Managed Prometheous
 
 ```
 gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus --zone $ZONE
 ```
+
+
+## Deploy Triton Inference Server
 
 ### Copy sample models to the repository
 
@@ -78,6 +134,7 @@ cd ~/triton-on-gke-sandbox/env-setup/kustomize
 cat << EOF > ~/triton-on-gke-sandbox/env-setup/kustomize/configs.env
 model_repository=gs://jk-triton-repository/model_repository
 ksa=triton-ksa
+EOF
 ```
 
 ### Deploy components

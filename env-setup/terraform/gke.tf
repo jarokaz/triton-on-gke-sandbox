@@ -24,7 +24,7 @@ provider "kubernetes" {
 
 module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google"
-  project_id                 = var.project_id
+  project_id                 = data.google_project.project.project_id
   name                       = var.cluster_name
   regional                   = false 
   zones                      = [var.zone]
@@ -108,15 +108,23 @@ module "gke" {
   #}
 }
 
-resource "kubernetes_service_account" "triton_ksa" {
-  metadata {
-    name      = var.triton_ksa_name
-    namespace = var.triton_ksa_namespace
+#resource "kubernetes_service_account" "triton_ksa" {
+#  metadata {
+#    name      = var.triton_ksa_name
+#    namespace = var.triton_ksa_namespace
+#
+#    annotations = {
+#      "iam.gke.io/gcp-service-account" = google_service_account.triton_sa.email
+#    } 
+#  }
+#}
 
-    annotations = {
-      "iam.gke.io/gcp-service-account" = google_service_account.triton_sa.email
-    } 
-  }
+module "triton_workload_identity" {
+  source       = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  project_id   = data.google_project.project.project_id
+  name         = var.triton_sa_name 
+  namespace    = var.triton_sa_namespace
+  roles        = var.triton_sa_roles
 }
 
 
