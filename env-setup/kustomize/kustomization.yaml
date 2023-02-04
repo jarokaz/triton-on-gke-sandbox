@@ -25,8 +25,14 @@ resources:
 #- triton-metrics-service.yaml
 #- triton-pod-monitoring.yaml
 
-#patchesStrategicMerge:
-#- patch.yaml
+patchesStrategicMerge:
+- ksa-patch.yaml
+
+images:
+  - name: nvcr.io/nvidia/tritonserver
+    newName: gcr.io/jk-mlops-dev/bignlp-inference
+    newTag: 22.08-py3
+   
 
 configMapGenerator:
 - name: triton-configs
