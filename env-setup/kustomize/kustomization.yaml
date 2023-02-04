@@ -21,7 +21,7 @@ commonLabels:
 
 resources:
 - triton-deployment.yaml
-#- triton-service.yaml
+- triton-service.yaml
 #- triton-metrics-service.yaml
 #- triton-pod-monitoring.yaml
 

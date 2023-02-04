@@ -95,6 +95,30 @@ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container
 gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus --zone $ZONE
 ```
 
+## Enable automatic sidecar injection
+
+Use the following command to locate the available release channels:
+
+```
+kubectl -n istio-system get controlplanerevision
+```
+
+he output is similar to the following:
+
+```
+NAME                AGE
+asm-managed         6d7h
+
+```
+
+In the output, select the value under the NAME column is the REVISION label that corresponds to the available release channel for the Anthos Service Mesh version. Apply this label to your namespaces, and remove the istio-injection label (if it exists). In the following command, replace REVISION with the revision label you noted above, and replace NAMESPACE with the name of the namespace where you want to enable auto-injection:
+
+```
+kubectl label namespace default  istio-injection- istio.io/rev=asm-managed --overwrite
+```
+
+You can ignore the message "istio-injection not found" in the output. That means that the namespace didn't previously have the istio-injection label, which you should expect in new installations of Anthos Service Mesh or new deployments. Because auto-injection fails if a namespace has both the istio-injection and the revision label, all kubectl label commands in the Anthos Service Mesh documentation include removing the istio-injection label.
+
 
 ## Deploy Triton Inference Server
 
@@ -149,7 +173,7 @@ kubectl get services
 
 
 ```
-TRITON_IP_ADDRESS=<YOUR IP ADDRESS>
+TRITON_IP_ADDRESS=35.184.84.141
 
 curl -v ${TRITON_IP_ADDRESS}:8000/v2/health/ready
 ```
@@ -161,7 +185,7 @@ docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 
 ```
-/workspace/install/bin/image_client -u  <YOUR IP ADDRESS>:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
+/workspace/install/bin/image_client -u  35.238.187.70:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
 
 ## Clean up

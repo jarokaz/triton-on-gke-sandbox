@@ -29,7 +29,7 @@ spec:
       name: grpc-inference-server
     - port: 8002
       targetPort: metrics
-      name: metrics-inference-server
+      name: http-metrics
   selector:
     app: triton-server
 
