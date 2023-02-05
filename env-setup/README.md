@@ -6,9 +6,10 @@
 Preliminary design patterns:
 
 - The Triton GKE cluster is run in a VPC-Native mode and is configured to use Workload Identity
-- Triton components are deployed to a dedicated namespace and run on a dedicated node pool
+- Triton components are deployed to a dedicated namespace and run on a dedicated GPU node pool
 - Anthos Service Mesh is used manage Triton access
 - Istio Ingress Gateway is configured using a [dedicated application gateway pattern](https://istio.io/v1.15/docs/setup/additional-setup/gateway/#dedicated-application-gateway)
+- Istion Ingress Gateway pods run on a default node pool
 
 ## Enable the required services
 
