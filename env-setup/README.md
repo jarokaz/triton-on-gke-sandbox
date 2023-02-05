@@ -3,6 +3,13 @@
 - Architecture diagram TBD
 - Architecture description TBD. 
 
+Preliminary design patterns:
+
+- The Triton GKE cluster is run in a VPC-Native mode and is configured to use Workload Identity
+- Triton components are deployed to a dedicated namespace and run on a dedicated node pool
+- Anthos Service Mesh is used manage Triton access
+- Istio Ingress Gateway is configured using a [dedicated application gateway pattern](https://istio.io/v1.15/docs/setup/additional-setup/gateway/#dedicated-application-gateway)
+
 ## Enable the required services
 
 From [Cloud Shell](https://cloud.google.com/shell/docs/using-cloud-shelld.google.com/shell/docs/using-cloud-shell), run the following commands to enable the required Cloud APIs:
@@ -51,7 +58,7 @@ export SUBNET_NAME=jk-gke-subnet
 export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
 export TRITON_SA_NAME=triton-sa
-export TRITON_SA_NAMESPACE=default
+export TRITON_NAMESPACE=triton
 
 ```
 
@@ -68,7 +75,7 @@ terraform apply \
 -var=repository_bucket_name=$GCS_BUCKET_NAME \
 -var=cluster_name=$GKE_CLUSTER_NAME \
 -var=triton_sa_name=$TRITON_SA_NAME \
--var=triton_sa_namespace=$TRITON_SA_NAMESPACE
+-var=triton_namespace=$TRITON_NAMESPACE
 
 ```
 
@@ -82,20 +89,10 @@ gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --project ${PROJEC
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user "$(gcloud config get-value account)"
 ```
 
-## Deploy NVIDIA drivers
+## Deploy Ingress Gateway
 
-```
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml 
-```
+### Enable automatic sidecar injection
 
-
-## Enable Managed Prometheous
-
-```
-gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus --zone $ZONE
-```
-
-## Enable automatic sidecar injection
 
 Use the following command to locate the available release channels:
 
@@ -114,10 +111,53 @@ asm-managed         6d7h
 In the output, select the value under the NAME column is the REVISION label that corresponds to the available release channel for the Anthos Service Mesh version. Apply this label to your namespaces, and remove the istio-injection label (if it exists). In the following command, replace REVISION with the revision label you noted above, and replace NAMESPACE with the name of the namespace where you want to enable auto-injection:
 
 ```
-kubectl label namespace default  istio-injection- istio.io/rev=asm-managed --overwrite
+REVISION=asm-managed
+
+kubectl label namespace $TRITON_NAMESPACE  istio-injection- istio.io/rev=$REVISION --overwrite
 ```
 
+
 You can ignore the message "istio-injection not found" in the output. That means that the namespace didn't previously have the istio-injection label, which you should expect in new installations of Anthos Service Mesh or new deployments. Because auto-injection fails if a namespace has both the istio-injection and the revision label, all kubectl label commands in the Anthos Service Mesh documentation include removing the istio-injection label.
+
+### Install the gateway
+
+```
+cd ~/triton-on-gek-sandbox/env-setup
+
+kubectl apply -n $TRITON_NAMESPACE -f istio-ingressgateway
+```
+
+verify that the new services are working correctly.
+
+```
+kubectl get pod,service -n $TRITON_NAMESPACE
+
+```
+
+Verify the output is similar to the following:
+
+```
+NAME                                      READY   STATUS    RESTARTS   AGE
+pod/istio-ingressgateway-856b7c77-bdb77   1/1     Running   0          3s
+
+NAME                           TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)        AGE
+service/istio-ingressgateway   LoadBalancer   10.24.5.129    34.82.157.6      80:31904/TCP   3s
+```
+
+## Deploy NVIDIA drivers
+
+```
+kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml 
+```
+
+
+## Enable Managed Prometheous
+
+```
+gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus --zone $ZONE
+```
+
+
 
 
 ## Deploy Triton Inference Server
@@ -200,8 +240,8 @@ export NETWORK_NAME=jk-gke-network
 export SUBNET_NAME=jk-gke-subnet
 export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
-export TRITON_SA_NAME=triton_sa
-export TRITON_SA_NAMESPACE=default
+export TRITON_SA_NAME=triton-sa
+export TRITON_NAMESPACE=triton
 
 ```
 Run Terraform
@@ -216,7 +256,7 @@ terraform destroy \
 -var=repository_bucket_name=$GCS_BUCKET_NAME \
 -var=cluster_name=$GKE_CLUSTER_NAME \
 -var=triton_sa_name=$TRITON_SA_NAME \
--var=triton_sa_namespace=$TRITON_SA_NAMESPACE
+-var=triton_namespace=$TRITON_NAMESPACE
 
 ```
 

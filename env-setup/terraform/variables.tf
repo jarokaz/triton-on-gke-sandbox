@@ -77,8 +77,8 @@ variable "triton_sa_roles" {
     ] 
 }
 
-variable "triton_sa_namespace" {
-    description = "The namespace of the K8s service account for workload identity ."
+variable "triton_namespace" {
+    description = "The K8s namespace for Triton deployment."
     default = "default"
 }
 
