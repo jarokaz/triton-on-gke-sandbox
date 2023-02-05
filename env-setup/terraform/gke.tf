@@ -37,7 +37,6 @@ module "gke" {
   network_policy             = false
   horizontal_pod_autoscaling = true
   filestore_csi_driver       = false
-  remove_default_node_pool   = true
   create_service_account     = true 
   grant_registry_access      = true   
   identity_namespace         = "${data.google_project.project.project_id}.svc.id.goog" 
@@ -72,6 +71,18 @@ module "gke" {
 
     triton-node-pool = [
         "https://www.googleapis.com/auth/cloud-platform", 
+    ]
+  }
+
+  node_pools_taints = {
+    all = []
+
+    triton-node-pool = [
+      {
+        key    = "triton-node-pool"
+        value  = true
+        effect = "PREFER_NO_SCHEDULE"
+      },
     ]
   }
 }
