@@ -77,11 +77,18 @@ module "gke" {
 }
 
 
+resource "kubernetes_namespace" "triton_namespace" {
+  metadata {
+    name = var.triton_namespace
+  }
+}
+
+
 module "triton_workload_identity" {
   source       = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
   project_id   = data.google_project.project.project_id
   name         = var.triton_sa_name 
-  namespace    = var.triton_namespace
+  namespace    = kubernetes_namespace.triton_namespace.metadata[0].name 
   roles        = var.triton_sa_roles
 }
 
