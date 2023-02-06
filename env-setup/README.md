@@ -247,7 +247,7 @@ kubectl get services -n $TRITON_NAMESPACE
 
 
 ```
-TRITON_IP_ADDRESS=34.171.168.240
+TRITON_IP_ADDRESS=34.69.9.196
 
 curl -v ${TRITON_IP_ADDRESS}:8000/v2/health/ready
 ```
@@ -259,7 +259,7 @@ docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 
 ```
-/workspace/install/bin/image_client -u  34.171.168.240:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
+/workspace/install/bin/image_client -u  34.69.9.196:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
 
 ## Clean up
