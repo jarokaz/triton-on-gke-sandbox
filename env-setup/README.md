@@ -5,11 +5,12 @@
 
 Preliminary design patterns:
 
-- The Triton GKE cluster is run in a VPC-Native mode and is configured to use Workload Identity
+- A GKE cluster is configured in a VPC-Native mode and is configured to use Workload Identity
 - Triton components are deployed to a dedicated namespace and run on a dedicated GPU node pool
-- Anthos Service Mesh is used manage Triton access
+- Anthos Service Mesh is used to manage Triton access
 - Istio Ingress Gateway is configured using a [dedicated application gateway pattern](https://istio.io/v1.15/docs/setup/additional-setup/gateway/#dedicated-application-gateway)
 - Istion Ingress Gateway pods run on a default node pool
+- Anthos fleet is in the same project as the GKE cluster
 
 ## Enable the required services
 
@@ -38,7 +39,7 @@ gcloud services enable \
 
 ## Enable the Anthos Service Mesh fleet feature
 
-The Terraform configuration that provisions a GKE cluster and auxiliary components assumes that the Anthos Service Mesh fleet feature has been enabled. It is assumed that the fleet project is the same as the cluster project.
+The Terraform configuration that provisions a GKE cluster and auxiliary components assumes that the Anthos Service Mesh fleet feature has been enabled. 
 
 ```
 gcloud container fleet mesh enable --project $PROJECT_ID

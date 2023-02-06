@@ -105,12 +105,17 @@ variable "subnet_ip_range" {
 
 variable "pods_ip_range" {
     description = "The secondary IP range for pods"
-    default     = "192.168.1.0/24"
+    default     = "192.168.64.0/20"
 }
 
 variable "services_ip_range" {
     description = "The secondary IP range for services"
-    default     = "192.168.2.0/24"
+    default     = "192.168.80.0/20"
+}
+
+variable "max_pods_per_node" {
+    description = "The maximum number of pods to schedule per node"
+    default     = 110 
 }
 
 
