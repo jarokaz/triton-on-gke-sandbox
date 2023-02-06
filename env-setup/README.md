@@ -187,11 +187,8 @@ gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus -
 
 ### Copy sample models to the repository
 
-TBD
 
-`gs://jk-triton-repository-archive` is public. The new NVIDIA Triton github repo seems to be missing example model files.
-
-gsutil cp -r gs://jk-triton-repository-archive/model_repository gs://${GCS_BUCKET_NAME} 
+gsutil cp -r model_repository gs://${GCS_BUCKET_NAME} 
 
 ### Configure Triton Deployment parameters 
 
