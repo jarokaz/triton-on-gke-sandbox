@@ -18,10 +18,8 @@ terraform {
   required_providers {
     google = "~> 4.15"
   }
-    backend "gcs" {
-    bucket  = "jk-mlops-dev-tf-state"
-    prefix  = "jax-to-ft-demo"
-  }
+
+  backend "gcs" {}
 }
 
 provider "google" {

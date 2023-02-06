@@ -45,6 +45,13 @@ The Terraform configuration that provisions a GKE cluster and auxiliary componen
 gcloud container fleet mesh enable --project $PROJECT_ID
 ```
 
+## Clone the repo
+
+```
+git clone https://github.com/jarokaz/triton-on-gke-sandbox
+
+```
+
 ## Provision infrastructure
 
 Use Terraform to provision the infrastructure described in the overview section.
@@ -64,11 +71,24 @@ export TRITON_NAMESPACE=triton
 
 ```
 
+Set your GCS backend for Terraform state
+
+```
+STATE_BUCKET=jk-mlops-dev-tf-statte
+STATE_PREFIX=jax-to-ft-demo 
+```
+
 Run terraform
+
+```
+cd ~/triton-on-gke-sandbox/env-setup/terraform
+```
 
 ```
 terraform init
 terraform apply \
+-backend-config="bucket=$STATE_BUCKET" \
+-backend-config="prefix=$STATE_PREFIX" \
 -var=project_id=$PROJECT_ID \
 -var=region=$REGION \
 -var=zone=$ZONE \
@@ -241,24 +261,13 @@ docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 
 ## Clean up
 
-Set the environment variables
 
-```
-export PROJECT_ID=jk-mlops-dev
-export REGION=us-central1
-export ZONE=us-central1-a
-export NETWORK_NAME=jk-gke-network
-export SUBNET_NAME=jk-gke-subnet
-export GCS_BUCKET_NAME=jk-triton-repository
-export GKE_CLUSTER_NAME=jk-ft-gke
-export TRITON_SA_NAME=triton-sa
-export TRITON_NAMESPACE=triton
-
-```
 Run Terraform
 
 ```
 terraform destroy \
+-backend-config="bucket=$STATE_BUCKET" \
+-backend-config="prefix=$STATE_PREFIX" \
 -var=project_id=$PROJECT_ID \
 -var=region=$REGION \
 -var=zone=$ZONE \
