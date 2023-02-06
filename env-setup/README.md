@@ -191,7 +191,7 @@ gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus -
 ### Copy sample models to the repository
 
 ```
-gsutil cp -r ~/triton-on-gke-sandbox/env-setup gs://${GCS_BUCKET_NAME} 
+gsutil cp -r ~/triton-on-gke-sandbox/env-setup/model_repository gs://${GCS_BUCKET_NAME} 
 ```
 
 
