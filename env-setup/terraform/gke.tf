@@ -33,6 +33,7 @@ module "gke" {
   subnetwork                 = google_compute_subnetwork.cluster_subnetwork.name
   ip_range_pods              = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.1.range_name
   ip_range_services          = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.0.range_name
+  initial_node_count         = var.default_pool_node_count
   http_load_balancing        = false
   network_policy             = false
   horizontal_pod_autoscaling = true

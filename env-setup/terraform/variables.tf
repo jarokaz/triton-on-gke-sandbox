@@ -55,6 +55,11 @@ variable "triton_node_count" {
     default     = 1
 }
 
+variable "default_pool_node_count" {
+    description = "The number of nodes in the default node pool"
+    default     = 3
+}
+
 variable "disk_size_gb" {
     description = "Disk size on a Triton node"
     default = 500
