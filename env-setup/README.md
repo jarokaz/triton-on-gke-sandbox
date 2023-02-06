@@ -190,8 +190,10 @@ gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus -
 
 ### Copy sample models to the repository
 
-
+```
 gsutil cp -r model_repository gs://${GCS_BUCKET_NAME} 
+```
+
 
 ### Configure Triton Deployment parameters 
 
