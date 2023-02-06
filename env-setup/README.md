@@ -74,7 +74,7 @@ export TRITON_NAMESPACE=triton
 Set your GCS backend for Terraform state
 
 ```
-STATE_BUCKET=jk-mlops-dev-tf-statte
+STATE_BUCKET=jk-mlops-dev-tf-state
 STATE_PREFIX=jax-to-ft-demo 
 ```
 
