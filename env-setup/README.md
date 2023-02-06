@@ -11,6 +11,9 @@ Preliminary design patterns:
 - Istio Ingress Gateway is configured using a [dedicated application gateway pattern](https://istio.io/v1.15/docs/setup/additional-setup/gateway/#dedicated-application-gateway)
 - Istion Ingress Gateway pods run on a default node pool
 - Anthos fleet is in the same project as the GKE cluster
+- Managed Prometheus is used to monitor the Triton deployment
+
+
 
 ## Enable the required services
 
