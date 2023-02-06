@@ -85,10 +85,11 @@ cd ~/triton-on-gke-sandbox/env-setup/terraform
 ```
 
 ```
-terraform init
-terraform apply \
+terraform init \
 -backend-config="bucket=$STATE_BUCKET" \
--backend-config="prefix=$STATE_PREFIX" \
+-backend-config="prefix=$STATE_PREFIX" 
+
+terraform apply \
 -var=project_id=$PROJECT_ID \
 -var=region=$REGION \
 -var=zone=$ZONE \
@@ -266,8 +267,6 @@ Run Terraform
 
 ```
 terraform destroy \
--backend-config="bucket=$STATE_BUCKET" \
--backend-config="prefix=$STATE_PREFIX" \
 -var=project_id=$PROJECT_ID \
 -var=region=$REGION \
 -var=zone=$ZONE \
