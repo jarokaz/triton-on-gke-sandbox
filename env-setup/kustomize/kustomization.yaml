@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-namespace: default
+namespace: triton
 namePrefix: jk-
 commonLabels:
   app: jk-triton-server
@@ -28,29 +28,26 @@ resources:
 patchesStrategicMerge:
 - ksa-patch.yaml
 
-images:
-  - name: nvcr.io/nvidia/tritonserver
-    newName: gcr.io/jk-mlops-dev/bignlp-inference
-    newTag: 22.08-py3
 
 replacements:
 - source:
+    fieldPath: data.ksa
     kind: ConfigMap
     name: triton-configs
-    fieldPath: data.ksa
   targets:
-  - select:
+  - fieldPaths:
+    - spec.template.spec.serviceAccountName
+    select:
       kind: Deployment
       name: triton-server-deployment
-    fieldPaths:
-      - spec.template.spec.serviceAccountName
 
 configMapGenerator:
-- name: triton-configs
-  envs:
+- envs:
   - configs.env
-
-
-
-
-
+  name: triton-configs
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: nvcr.io/nvidia/tritonserver:23.01-py3
+  newName: gcr.io/jk-mlops-dev/bignlp-inference
+  newTag: 22.08-py3

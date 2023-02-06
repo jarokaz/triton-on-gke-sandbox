@@ -124,7 +124,7 @@ You can ignore the message "istio-injection not found" in the output. That means
 ### Install the gateway
 
 ```
-cd ~/triton-on-gek-sandbox/env-setup
+cd ~/triton-on-gke-sandbox/env-setup
 
 kubectl apply -n $TRITON_NAMESPACE -f istio-ingressgateway
 ```
@@ -190,6 +190,15 @@ ksa=${TRITON_SA_NAME}
 EOF
 ```
 
+
+```
+
+kustomize edit set  image "nvcr.io/nvidia/tritonserver:23.01-py3=gcr.io/jk-mlops-dev/bignlp-inference:22.08-py3"
+
+kustomize edit set namespace $TRITON_NAMESPACE
+
+```
+
 ### Deploy components
 
 Validate configurations
@@ -210,12 +219,12 @@ kubectl apply -k ./
 Get external IP address of Triton service
 
 ```
-kubectl get services
+kubectl get services -n $TRITON_NAMESPACE
 ```
 
 
 ```
-TRITON_IP_ADDRESS=35.184.84.141
+TRITON_IP_ADDRESS=34.171.168.240
 
 curl -v ${TRITON_IP_ADDRESS}:8000/v2/health/ready
 ```
@@ -227,7 +236,7 @@ docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 
 ```
-/workspace/install/bin/image_client -u  35.238.187.70:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
+/workspace/install/bin/image_client -u  34.171.168.240:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
 
 ## Clean up

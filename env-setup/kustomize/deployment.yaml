@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: triton-inference-server 
-          image: nvcr.io/nvidia/tritonserver 
+          image: nvcr.io/nvidia/tritonserver:23.01-py3 
           imagePullPolicy: IfNotPresent
           resources:
             limits:
