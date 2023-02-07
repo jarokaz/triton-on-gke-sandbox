@@ -248,11 +248,13 @@ curl -v ${ISTIO_GATEWAY_IP_ADDRESS}/v2/health/ready
 #### Test the sample model
 
 ```
-docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
+docker run -it --rm --net=host  \
+-e ISTIO_GATEWAY_IP_ADDRESS=${ISTIO_GATEWAY_IP_ADDRESS} \
+nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 
 ```
-/workspace/install/bin/image_client -u  34.122.55.163 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
+/workspace/install/bin/image_client -u  $ISTIO_GATEWAY_IP_ADDRESS -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
 
 ## Clean up
