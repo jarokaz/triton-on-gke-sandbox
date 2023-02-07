@@ -34,7 +34,6 @@ module "gke" {
   ip_range_pods              = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.1.range_name
   ip_range_services          = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.0.range_name
   default_max_pods_per_node  = var.max_pods_per_node
-  initial_node_count         = var.default_pool_node_count
   http_load_balancing        = false
   network_policy             = false
   horizontal_pod_autoscaling = true
@@ -48,6 +47,24 @@ module "gke" {
   cluster_resource_labels = { "mesh_id" : "proj-${data.google_project.project.number}" }
 
   node_pools = [
+    node_pools = [
+    {
+      name                      = "default-node-pool"
+      machine_type              = "e2-medium"
+      node_locations            = var.zone
+      min_count                 = var.default_pool_node_count 
+      max_count                 = var.default_pool_node_count
+      local_ssd_count           = 0
+      spot                      = false
+      disk_size_gb              = 100
+      disk_type                 = "pd-standard"
+      image_type                = "COS_CONTAINERD"
+      enable_gcfs               = false
+      enable_gvnic              = false
+      auto_repair               = true
+      auto_upgrade              = true
+      preemptible               = false
+    },
     {
       name                      = "triton-node-pool" 
       machine_type              = var.machine_type 
@@ -60,7 +77,7 @@ module "gke" {
       disk_type                 = var.disk_type
       image_type                = "COS_CONTAINERD"
       enable_gcfs               = false
-      enable_gvnic              = false
+      enable_gvnic              = true
       auto_repair               = true
       auto_upgrade              = true
       preemptible               = false
@@ -76,6 +93,14 @@ module "gke" {
     triton-node-pool = [
         "https://www.googleapis.com/auth/cloud-platform", 
     ]
+  }
+
+  node_pools_labels = {
+    all = {}
+
+    default-node-pool = {
+      default-node-pool = true
+    }
   }
 
   node_pools_taints = {
