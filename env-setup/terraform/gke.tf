@@ -34,6 +34,7 @@ module "gke" {
   ip_range_pods              = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.1.range_name
   ip_range_services          = google_compute_subnetwork.cluster_subnetwork.secondary_ip_range.0.range_name
   default_max_pods_per_node  = var.max_pods_per_node
+  remove_default_node_pool   = true
   http_load_balancing        = false
   network_policy             = false
   horizontal_pod_autoscaling = true
@@ -47,9 +48,8 @@ module "gke" {
   cluster_resource_labels = { "mesh_id" : "proj-${data.google_project.project.number}" }
 
   node_pools = [
-    node_pools = [
     {
-      name                      = "default-node-pool"
+      name                      = "cpu-node-pool"
       machine_type              = "e2-medium"
       node_locations            = var.zone
       min_count                 = var.default_pool_node_count 
@@ -98,8 +98,12 @@ module "gke" {
   node_pools_labels = {
     all = {}
 
-    default-node-pool = {
+    cpu-node-pool = {
       default-node-pool = true
+    }
+
+    triton-node-pool = {
+      gpu-node-pool = true
     }
   }
 

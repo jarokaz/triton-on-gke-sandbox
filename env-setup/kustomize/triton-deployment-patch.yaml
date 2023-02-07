@@ -22,3 +22,8 @@ spec:
       serviceAccountName: ksa 
       nodeSelector:
         iam.gke.io/gke-metadata-server-enabled: "true"
+        gpu-node-pool: "true"
+      tolerations:
+      - key: "triton-node-pool"
+        operator: "Exists"
+        effect: "PreferNoSchedule" 
