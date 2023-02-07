@@ -239,7 +239,7 @@ kubectl apply -k ./
 
 #### Run healthcheck
 
-Get external IP address of Triton service
+Get external IP address of `istio-ingressgateway`
 
 ```
 kubectl get services -n $TRITON_NAMESPACE
@@ -247,9 +247,9 @@ kubectl get services -n $TRITON_NAMESPACE
 
 
 ```
-TRITON_IP_ADDRESS=34.69.9.196
+ISTIO_GATEWAY_IP_ADDRESS=34.69.9.196
 
-curl -v ${TRITON_IP_ADDRESS}:8000/v2/health/ready
+curl -v ${ISTIO_GATEWAY_IP_ADDRESS}/v2/health/ready
 ```
 
 #### Test the sample model
@@ -259,7 +259,7 @@ docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 
 ```
-/workspace/install/bin/image_client -u  34.69.9.196:8000 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
+/workspace/install/bin/image_client -u  34.69.9.196 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
 
 ## Clean up

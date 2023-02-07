@@ -12,24 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: Service
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
 metadata:
   name: triton-server
-  labels:
-    app: triton-server 
 spec:
-  type: ClusterIP
-  ports:
-    - port: 8000
-      targetPort: http
-      name: http-inference-server
-    - port: 8001
-      targetPort: grpc
-      name: grpc-inference-server
-    - port: 8002
-      targetPort: metrics
-      name: http-metrics
-  selector:
-    app: triton-server
-
+  host: triton-server
+  subsets:
+  - name: v1
+    labels:
+      version: v1

@@ -17,16 +17,19 @@ kind: Deployment
 metadata:
   name: triton-server-deployment
   labels:
-    app: triton-server 
+    app: triton-server
+    version: v1 
 spec:
   replicas: 1 
   selector:
     matchLabels:
       app: triton-server 
+      version: v1
   template:
     metadata:
       labels:
         app: triton-server 
+        version: v1
     spec:
       containers:
         - name: triton-inference-server 

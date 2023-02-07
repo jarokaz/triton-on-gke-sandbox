@@ -14,20 +14,17 @@
 
 
 namespace: triton
-namePrefix: jk-
-commonLabels:
-  app: jk-triton-server
 
 
 resources:
 - triton-deployment.yaml
 - triton-service.yaml
-#- triton-metrics-service.yaml
-#- triton-pod-monitoring.yaml
+- ingress-gateway.yaml
+- virtual-service.yaml
+- destination-rule.yaml
 
 patchesStrategicMerge:
 - ksa-patch.yaml
-
 
 replacements:
 - source:
