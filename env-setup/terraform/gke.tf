@@ -40,8 +40,10 @@ module "gke" {
   horizontal_pod_autoscaling = true
   filestore_csi_driver       = false
   create_service_account     = true 
-  grant_registry_access      = true   
+  grant_registry_access      = true  
   identity_namespace         = "${data.google_project.project.project_id}.svc.id.goog" 
+
+  monitoring_enable_managed_prometheus = true 
   
   cluster_resource_labels = { "mesh_id" : "proj-${data.google_project.project.number}" }
 
