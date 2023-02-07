@@ -15,7 +15,7 @@
 apiVersion: monitoring.googleapis.com/v1
 kind: PodMonitoring
 metadata:
-  name: triton-server-metrics-monitoring
+  name: triton-server
   labels:
     app: triton-server
 spec:

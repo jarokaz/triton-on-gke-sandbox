@@ -177,13 +177,6 @@ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container
 ```
 
 
-## Enable Managed Prometheous
-
-```
-gcloud container clusters update $GKE_CLUSTER_NAME --enable-managed-prometheus --zone $ZONE
-```
-
-
 
 
 ## Deploy Triton Inference Server
@@ -247,7 +240,7 @@ kubectl get services -n $TRITON_NAMESPACE
 
 
 ```
-ISTIO_GATEWAY_IP_ADDRESS=34.69.9.196
+ISTIO_GATEWAY_IP_ADDRESS=34.122.55.163
 
 curl -v ${ISTIO_GATEWAY_IP_ADDRESS}/v2/health/ready
 ```
@@ -259,7 +252,7 @@ docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
 
 ```
-/workspace/install/bin/image_client -u  34.69.9.196 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
+/workspace/install/bin/image_client -u  34.122.55.163 -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
 ```
 
 ## Clean up

@@ -19,6 +19,7 @@ namespace: triton
 resources:
 - triton-deployment.yaml
 - triton-service.yaml
+- triton-pod-monitoring.yaml
 - ingress-gateway.yaml
 - virtual-service.yaml
 - destination-rule.yaml
