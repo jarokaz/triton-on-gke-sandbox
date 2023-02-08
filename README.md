@@ -17,11 +17,17 @@ This section outlines the steps to configure Google Cloud environment that is re
 - Managed Prometheus is used to monitor the Triton Inference Server pods
 
 
+To set up the environment execute the following steps.
+
+### Select a Google Cloud project
+
+In the Google Cloud Console, on the project selector page, [select or create a Google Cloud project](https://console.cloud.google.com/projectselector2/home/dashboard?_ga=2.77230869.1295546877.1635788229-285875547.1607983197&_gac=1.82770276.1635972813.Cj0KCQjw5oiMBhDtARIsAJi0qk2ZfY-XhuwG8p2raIfWLnuYahsUElT08GH1-tZa28e230L3XSfYewYaAlEMEALw_wcB). You need to be a project owner in order to set up the environment
 
 
-## Enable the required services
+### Enable the required services
 
 From [Cloud Shell](https://cloud.google.com/shell/docs/using-cloud-shelld.google.com/shell/docs/using-cloud-shell), run the following commands to enable the required Cloud APIs:
+
 
 ```bash
 export PROJECT_ID=<YOUR_PROJECT_ID>
@@ -44,26 +50,46 @@ gcloud services enable \
   mesh.googleapis.com
 ```
 
-## Enable the Anthos Service Mesh fleet feature
 
-The Terraform configuration that provisions a GKE cluster and auxiliary components assumes that the Anthos Service Mesh fleet feature has been enabled. 
+
+### Provision infrastructure
+
+Provisioning of the infrastructure has been automated with Terraform. The Terraform configuration performs the following tasks:
+
+- Creates a network and a subnet for a GKE cluster
+- Creates a zonal GKE cluster with two node pools: a CPU node pool and a GPU node pool
+- Enables Workload Identity and creates a configures a service account to be used by NVIDIA Triton Inference Server
+- Registers the cluster with the Anthos fleet and configures Anthos Service Mesh
+- Enables managed data collection for the cluster to integrate with Managed Service for Prometheus
+- Creates a GCS bucket for NVIDIA Triton Inference Server model repository 
+
+
+The Terraform configuration assumes that the Anthos Service Mesh fleet feature has been enabled. 
 
 ```
 gcloud container fleet mesh enable --project $PROJECT_ID
+
 ```
 
-## Clone the repo
+Clone the github repo.
 
 ```
 git clone https://github.com/jarokaz/triton-on-gke-sandbox
-
 ```
 
-## Provision infrastructure
 
-Use Terraform to provision the infrastructure described in the overview section.
+The Terraform configuration supports a number of configurable inputs. Refer to the `/env-setup/variables.tf` for the full list and the default settings. You need to set a small set of the required parameters. Set the below environment variables to reflect your environment.
 
-Update the environment variables to reflect your environment resource names.
+- `PROJECT_ID` - your project ID
+- `REGION` - the region for a GKE cluster network
+- `ZONE` - the zone for your GKE cluster
+- `NETWORK_NAME` - the name for the network
+- `SUBNET_NAME` - the name for the subnet
+- `GCS_BUCKET_NAME` - the name of the model repository GCS bucket
+- `GKE_CLUSTER_NAME` - the name of your cluster
+- `TRITON_SA_NAME` - the name for the service account that will be used as the Triton's workload identity
+- `TRITON_NAMESAPCE` - the name of a namespace where the solution's components are deployed
+
 
 ```
 export PROJECT_ID=jk-mlops-dev
@@ -78,14 +104,15 @@ export TRITON_NAMESPACE=triton
 
 ```
 
-Set your GCS backend for Terraform state
+By default, the Terraform configurations uses Cloud Storage for the Terraform state. Set the following environment variables to the GCS location for the state.
+
 
 ```
 STATE_BUCKET=jk-mlops-dev-tf-state
 STATE_PREFIX=jax-to-ft-demo 
 ```
 
-Run terraform
+Start provisioning.
 
 ```
 cd ~/triton-on-gke-sandbox/env-setup/terraform
@@ -109,7 +136,16 @@ terraform apply \
 
 ```
 
-## Configure access to the cluster
+### Finalize the setup
+
+To finalize the setup you follow the below steps to:
+- Install and configure Istio Ingress Gatewy, 
+- Install GPU drivers, and
+- Deploy NVIDIA Triton Inference Server
+
+
+Start by configuring access to the cluster.
+
 
 ```
 gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE} 
@@ -119,10 +155,12 @@ gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --project ${PROJEC
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user "$(gcloud config get-value account)"
 ```
 
-## Deploy Ingress Gateway
+#### Deploy Ingress Gateway
 
-### Enable automatic sidecar injection
+##### Enable automatic sidecar injection
 
+
+To enable auto-injection, you label your namespaces with the default injection labels if the default tag is set up, or with the revision label to your namespace.
 
 Use the following command to locate the available release channels:
 
@@ -130,7 +168,7 @@ Use the following command to locate the available release channels:
 kubectl -n istio-system get controlplanerevision
 ```
 
-he output is similar to the following:
+The output is similar to the following:
 
 ```
 NAME                AGE
@@ -149,7 +187,9 @@ kubectl label namespace $TRITON_NAMESPACE  istio-injection- istio.io/rev=$REVISI
 
 You can ignore the message "istio-injection not found" in the output. That means that the namespace didn't previously have the istio-injection label, which you should expect in new installations of Anthos Service Mesh or new deployments. Because auto-injection fails if a namespace has both the istio-injection and the revision label, all kubectl label commands in the Anthos Service Mesh documentation include removing the istio-injection label.
 
-### Install the gateway
+##### Install the gateway
+
+You can deploy the gateway using the example gateway configuration in the `env-setup/istio-ingressgateway` directory as is, or modify it as needed.
 
 ```
 cd ~/triton-on-gke-sandbox/env-setup
@@ -157,14 +197,14 @@ cd ~/triton-on-gke-sandbox/env-setup
 kubectl apply -n $TRITON_NAMESPACE -f istio-ingressgateway
 ```
 
-verify that the new services are working correctly.
+Verify that the new services are working correctly.
 
 ```
 kubectl get pod,service -n $TRITON_NAMESPACE
 
 ```
 
-Verify the output is similar to the following:
+The output should be similar to the following:
 
 ```
 NAME                                      READY   STATUS    RESTARTS   AGE
@@ -174,88 +214,107 @@ NAME                           TYPE           CLUSTER-IP     EXTERNAL-IP      PO
 service/istio-ingressgateway   LoadBalancer   10.24.5.129    34.82.157.6      80:31904/TCP   3s
 ```
 
-## Deploy NVIDIA drivers
+#### Deploy NVIDIA GPU drivers
+
+You need to install NVIDIA's device drivers on the GPU nodes. Google provides a DaemonSet that you can apply to install the drivers.
+
+To deploy the installation DaemonSet and install the default GPU driver version, run the following command:
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml 
 ```
 
 
+#### Deploy Triton Inference Server
 
+##### Copy sample models to the repository
 
-## Deploy Triton Inference Server
-
-### Copy sample models to the repository
+NVIDIA Triton Inference Server will not start if the are no models in the model repository. Copy a sample model from the `/env-setup/model_repository` to the GCS bucket provisioned by Terraform.
 
 ```
 gsutil cp -r ~/triton-on-gke-sandbox/env-setup/model_repository gs://${GCS_BUCKET_NAME} 
 ```
 
+##### Configure Triton Deployment parameters 
 
-### Configure Triton Deployment parameters 
+Deployment of NVIDIA Triton Inference Server has been configured with *Kustomize*. 
+
+
+Before deploying the configuration update the `configs.env` file with the values appropriate for your deployment. The following parameters are required
+
+- `model_repository` - The GCS path to Triton model repository
+- `ksa` - The name of Triton service account that was provisioned by Terraform
+
 
 ```
 cd ~/triton-on-gke-sandbox/env-setup/kustomize
-```
 
-Update the `configs.env` file with the values appropriate for your deployment. The following parameters are required
-
-- `model_repository` - The GCS path to Triton model repository
-- `ksa` - The name of Triton service account that was provisioned during the setup
-
-```
 cat << EOF > ~/triton-on-gke-sandbox/env-setup/kustomize/configs.env
 model_repository=gs://${GCS_BUCKET_NAME}/model_repository
 ksa=${TRITON_SA_NAME}
 EOF
 ```
 
+Update the namespace.
+
+```
+kustomize edit set namespace $TRITON_NAMESPACE
+```
+
+If you want to use a different NVIDIA Triton Inference Server container image than the one in the default configuration - `nvcr.io/nvidia/tritonserver:23.01-py3`, update and execute the following command.
 
 ```
 
 kustomize edit set  image "nvcr.io/nvidia/tritonserver:23.01-py3=gcr.io/jk-mlops-dev/bignlp-inference:22.08-py3"
 
-kustomize edit set namespace $TRITON_NAMESPACE
-
 ```
 
-### Deploy components
+##### Deploy the configuration
 
-Validate configurations
+Validate that the Kustomize configuration does not have any errors.
 
 ```
 kubectl kustomize ./
 ```
 
-Deploy
+Deploy to the cluster.
 
 ```
 kubectl apply -k ./
 
 ```
 
-#### Run healthcheck
+##### Run healthcheck
 
-Get external IP address of `istio-ingressgateway`
+To validate that NVIDIA Triton Inference Server has been deployed successfully try to access the server's health check API and invoke a sample model.
+
+
+You will access the server through Istion Ingress Gateway. Start by getting the external IP address of the  `istio-ingressgateway` service.
 
 ```
 kubectl get services -n $TRITON_NAMESPACE
 ```
 
+Invoke the health check API.
 
 ```
-ISTIO_GATEWAY_IP_ADDRESS=34.122.55.163
+ISTIO_GATEWAY_IP_ADDRESS=<YOUR GATEWAYS IP ADDRESS>
 
 curl -v ${ISTIO_GATEWAY_IP_ADDRESS}/v2/health/ready
 ```
 
-#### Test the sample model
+If the returned status is `200OK` the server is up and accessible through the gateway.
+
+You can now invoke the sample model. Use the NVIDIA Triton Inference Server SDK container image.
+
 
 ```
 docker run -it --rm --net=host  \
 -e ISTIO_GATEWAY_IP_ADDRESS=${ISTIO_GATEWAY_IP_ADDRESS} \
 nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ```
+
+After the container starts execute the following command from the containers command line:
 
 ```
 /workspace/install/bin/image_client -u  $ISTIO_GATEWAY_IP_ADDRESS -m densenet_onnx -c 3 -s INCEPTION /workspace/images/mug.jpg
@@ -264,7 +323,8 @@ nvcr.io/nvidia/tritonserver:22.08-py3-sdk
 ## Clean up
 
 
-Run Terraform
+To clean up the environment use Terraform.
+
 
 ```
 terraform destroy \
