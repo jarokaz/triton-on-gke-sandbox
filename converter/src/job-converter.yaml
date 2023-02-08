@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-converter
+  namespace: triton
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: standard-rwo
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: jax-to-ft-converter-job
+  namespace: triton
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      serviceAccountName: triton-sa2
+      volumes:
+        - name: pvc-converter-vol
+          persistentVolumeClaim:
+            claimName: pvc-converter
+      containers:
+      - name: jax-to-ft-converter
+        image: gcr.io/rl-llm-dev/llms-on-gke/jax-to-fastertransformer
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        command: ["/bin/bash",  
+                  "/run-converter-jax-to-fastertransformer.sh",
+                  "gs://rl-triton-repository2/t5_1_1_small/",
+                  "gs://rl-triton-repository2/t5_1_1_small_ft/"]
+        volumeMounts:
+        - mountPath: "/models"
+          name: pvc-converter-vol
+      restartPolicy: Never
+  backoffLimit: 4
