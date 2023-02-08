@@ -17,6 +17,7 @@ metadata:
   name: jax-to-ft-converter-job
   namespace: triton
 spec:
+  ttlSecondsAfterFinished: 60
   template:
     spec:
       serviceAccountName: triton-sa2
