@@ -58,10 +58,10 @@ Provisioning of the infrastructure has been automated with Terraform. The Terraf
 
 - Creates a network and a subnet for a GKE cluster
 - Creates a zonal GKE cluster with two node pools: a CPU node pool and a GPU node pool
-- Enables Workload Identity and creates a configures a service account to be used by NVIDIA Triton Inference Server
+- Enables Workload Identity and creates and configures a service account to be used by NVIDIA Triton Inference Server
 - Registers the cluster with the Anthos fleet and configures Anthos Service Mesh
 - Enables managed data collection for the cluster to integrate with Managed Service for Prometheus
-- Creates a GCS bucket for NVIDIA Triton Inference Server model repository 
+- Creates a GCS bucket for the NVIDIA Triton Inference Server's model repository 
 
 
 The Terraform configuration assumes that the Anthos Service Mesh fleet feature has been enabled. 
@@ -240,10 +240,10 @@ gsutil cp -r ~/triton-on-gke-sandbox/env-setup/model_repository gs://${GCS_BUCKE
 Deployment of NVIDIA Triton Inference Server has been configured with *Kustomize*. 
 
 
-Before deploying the configuration update the `configs.env` file with the values appropriate for your deployment. The following parameters are required
+Before deploying the configuration, update the `configs.env` file with the values appropriate for your environment. The following parameters are required
 
-- `model_repository` - The GCS path to Triton model repository
-- `ksa` - The name of Triton service account that was provisioned by Terraform
+- `model_repository` - The GCS path to your model repository
+- `ksa` - The name of the Triton service account that was provisioned by Terraform
 
 
 ```
@@ -289,7 +289,7 @@ kubectl apply -k ./
 To validate that NVIDIA Triton Inference Server has been deployed successfully try to access the server's health check API and invoke a sample model.
 
 
-You will access the server through Istion Ingress Gateway. Start by getting the external IP address of the  `istio-ingressgateway` service.
+You will access the server through Istio Ingress Gateway. Start by getting the external IP address of the  `istio-ingressgateway` service.
 
 ```
 kubectl get services -n $TRITON_NAMESPACE
