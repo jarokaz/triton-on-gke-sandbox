@@ -1,0 +1,67 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+  # Clone GitHub repo
+  - id: clone repo
+    name: google/cloud-sdk:alpine
+    entrypoint: /bin/bash
+    args:
+      - -c
+      - |
+          git clone https://github.com/jarokaz/triton-on-gke-sandbox.git /workspace/triton-on-gke-sandbox
+          echo project_id=$PROJECT_ID
+          echo region=$_REGION
+          echo zone=$_ZONE
+          echo network_name=$_NETWORK_NAME
+          echo subnet_name=$_SUBNET_NAME
+          echo repository_bucket_name=$_GCS_BUCKET_NAME
+          echo cluster_name=$_GKE_CLUSTER_NAME
+          echo triton_sa_name=$_TRITON_SA_NAME
+          echo triton_namespace=$_TRITON_NAMESPACE
+          echo bucket=$_TF_STATE_BUCKET
+          echo prefix=$_TF_STATE_PREFIX
+
+  # Initialize and Destroy Terraform resources
+  - id: 'tf destroy'
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: 'sh'
+    args: 
+      - '-c'
+      - |
+          # install Terraform
+          cd /workspace
+          apt update && apt install wget
+          wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+          apt update && apt install terraform
+          cd /workspace/triton-on-gke-sandbox/env-setup/terraform
+          # initialize terraform
+          terraform init \
+            -backend-config="bucket=$_TF_STATE_BUCKET" \
+            -backend-config="prefix=$_TF_STATE_PREFIX" 
+          # apply terraform
+          terraform destroy -auto-approve \
+            -var=project_id=$PROJECT_ID \
+            -var=region=$_REGION \
+            -var=zone=$_ZONE \
+            -var=network_name=$_NETWORK_NAME \
+            -var=subnet_name=$_SUBNET_NAME \
+            -var=repository_bucket_name=$_GCS_BUCKET_NAME \
+            -var=cluster_name=$_GKE_CLUSTER_NAME \
+            -var=triton_sa_name=$_TRITON_SA_NAME \
+            -var=triton_namespace=$_TRITON_NAMESPACE
+
+options:
+  dynamic_substitutions: true
