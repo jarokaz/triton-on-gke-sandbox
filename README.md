@@ -11,9 +11,10 @@ This repository compiles prescriptive guidance and code sample to serve Large La
 
 The solution demonstrates deploying UL2 (20B) model on GKE cluster with GPUs. Assuming, you have JAX based checkpoints of a [pre-trained/fine-tuned UL2 model](https://github.com/google-research/google-research/tree/master/ul2#checkpoints), the workflow has following steps:
 
-1. Convert JAX checkpoint to FasterTransformer checkpoint
-2. Serve the resultant model on GPUs using NVIDIA Triton Inference server with FasterTransformer backend
-3. Run evaluation script with test instances to compute model eval metrics
+1. Set up the environment running Triton server on GKE cluster
+2. Convert JAX checkpoint to FasterTransformer checkpoint
+3. Serve the resultant model on GPUs using NVIDIA Triton Inference server with FasterTransformer backend
+4. Run evaluation script with test instances to compute model eval metrics
 
 NOTE: Refer to this [solution accelerator](https://github.com/GoogleCloudPlatform/t5x-on-vertex-ai) for fine-tuning UL2 model with custom datasets using [T5X framework](https://github.com/google-research/t5x).
 
