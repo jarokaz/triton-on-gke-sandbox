@@ -9,7 +9,7 @@ This repository compiles prescriptive guidance and code sample to serve Large La
 
 ## High Level Flow
 
-The solution demonstrates deploying UL2 (20B) model on GKE cluster with GPUs. Assuming, you have JAX based checkpoints of a [pre-trained/fine-tuned UL2 model](https://github.com/google-research/google-research/tree/master/ul2#checkpoints), the workflow has following steps:
+The solution demonstrates deploying the UL2 (20B) model on a GKE cluster with GPUs. Assuming, you have JAX based checkpoints of a [pre-trained/fine-tuned UL2 model](https://github.com/google-research/google-research/tree/master/ul2#checkpoints), the workflow has following steps:
 
 1. Set up the environment running Triton server on GKE cluster
 2. Convert JAX checkpoint to FasterTransformer checkpoint
@@ -26,7 +26,7 @@ NOTE: Refer to this [solution accelerator](https://github.com/GoogleCloudPlatfor
 
 ## Environment setup
 
-This section outlines the steps to configure Google Cloud environment required to run the worflow demonstrated in this repo:
+This section outlines the steps to configure Google Cloud environment required to run the workflow demonstrated in this repo:
 
 ![arch](/images/env.png)
 
@@ -37,7 +37,7 @@ This section outlines the steps to configure Google Cloud environment required t
 - Anthos Service Mesh is used to manage, observe and secure communication to Triton Inference Server
 - All external traffic to Triton is routed through Istio Ingress Gateway, enabling fine-grained traffic management and progressive deployments
 - Managed Prometheus is used to monitor the Triton Inference Server pods
-- A Cloud Storage bucket located in the same region as GKE cluster for managing model artifacts as in model repository hosted on Triton server.
+- A Cloud Storage bucket located in the same region as the GKE cluster for managing model artifacts as in the model repository hosted on Triton server.
 - Docker repository in Google Artifact Registry to manage images required to run the steps of the workflow
 
 Google Cloud Build jobs with Terraform will be used to provision the environment. The setup builds the environment as follows:
@@ -54,7 +54,7 @@ A few things to note:
 1. You need to be a project owner to set up the environment.
 2. You will be using [Cloud Shell](https://cloud.google.com/shell/docs/using-cloud-shell) to start and monitor the setup process.
 
-Click on the below link to navigate to Cloud Shell and clone the repo.
+Click on the link below to navigate to Cloud Shell and clone the repo.
 
 <a href="https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/jarokaz/triton-on-gke-sandbox&cloudshell_git_branch=main&tutorial=README.md">
     <img alt="Open in Cloud Shell" src="http://gstatic.com/cloudssh/images/open-btn.png">
@@ -99,7 +99,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 
 ### Run environment provisioning job
 
-Environment provisioning is done using Cloud Build job that runs Terraform scripts and environment setup steps. The Terraform configuration supports a number of configurable inputs. Refer to the `/env-setup/variables.tf` for the full list and the default settings. You need to set a small set of the required parameters. Set the below environment variables to reflect your environment.
+Environment provisioning is done using a Cloud Build job that runs Terraform scripts and environment setup steps. The Terraform configuration supports a number of configurable inputs. Refer to the `/env-setup/variables.tf` for the full list and the default settings. You need to set a small set of the required parameters. Set the below environment variables to reflect your environment.
 
 - `PROJECT_ID` - your project ID
 - `REGION` - the region for a GKE cluster network
@@ -132,7 +132,7 @@ export JAX_TO_FT_IMAGE_NAME="jax-to-fastertransformer"
 export JAX_TO_FT_IMAGE_URI="gcr.io/"${PROJECT_ID}"/"${DOCKER_ARTIFACT_REPO}"/"${JAX_TO_FT_IMAGE_NAME}
 ```
 
-By default, the Terraform configurations uses Cloud Storage for the Terraform state. Set the following environment variables to the GCS location for the state.
+By default, the Terraform configuration uses Cloud Storage for the Terraform state. Set the following environment variables to the GCS location for the state.
 
 ```bash
 export TF_STATE_BUCKET=jk-mlops-dev-tf-state
@@ -157,7 +157,7 @@ gcloud builds submit \
   --quiet
 ```
 
-Navigate to the Cloud Build logs using the link displayed on Cloud Shell or go to Cloud Build page on the Cloud console. You should see similar page when the environment provision job is completed successfully:
+Navigate to the Cloud Build logs using the link displayed on Cloud Shell or go to the [Cloud Build page on the Cloud console](https://console.cloud.google.com/cloud-build?_ga=2.109004802.1605716039.1675990133-1112324367.1675987342). You should see similar page when the environment provision job is completed successfully:
 
 ![arch](/images/build-provision.png)
 
