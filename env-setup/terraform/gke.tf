@@ -145,6 +145,7 @@ module "asm" {
   enable_cni                = false
   enable_fleet_registration = true
   enable_mesh_feature       = false 
+  channel                   = "stable"
 }
 
 

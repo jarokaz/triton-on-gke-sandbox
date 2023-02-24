@@ -38,7 +38,7 @@ spec:
           resources:
             limits:
               nvidia.com/gpu: 1
-          args: ["tritonserver", "--model-store=$(MODEL_REPOSITORY)"]
+          args: ["tritonserver", "--model-store=$(MODEL_REPOSITORY)", "--log-error=1", "--log-verbose=99", "--log-info=1", "--log-warning=1"]
           env:
             - name: MODEL_REPOSITORY
               valueFrom:
@@ -53,11 +53,15 @@ spec:
             - containerPort: 8002
               name: metrics
           livenessProbe:
+            failureThreshold: 60
+            initialDelaySeconds: 3600
+            periodSeconds: 5
             httpGet:
               path: /v2/health/live
               port: http
           readinessProbe:
-            initialDelaySeconds: 5
+            failureThreshold: 60
+            initialDelaySeconds: 3600
             periodSeconds: 5
             httpGet:
               path: /v2/health/ready
