@@ -32,9 +32,9 @@ steps:
           echo triton_namespace=$_TRITON_NAMESPACE
           echo bucket=$_TF_STATE_BUCKET
           echo prefix=$_TF_STATE_PREFIX
-          echo $_JAX_TO_FT_IMAGE_URI
-          echo $_DOCKERNAME
-          echo $_FT_CONVERTER_PATH
+          echo machine_type=$_MACHINE_TYPE
+          echo accelerator_type=$_ACCELERATOR_TYPE
+          echo accelerator_count=$_ACCELERATOR_COUNT
 
   # Enable APIs
   - id: enable apis
@@ -89,7 +89,10 @@ steps:
             -var=repository_bucket_name=$_GCS_BUCKET_NAME \
             -var=cluster_name=$_GKE_CLUSTER_NAME \
             -var=triton_sa_name=$_TRITON_SA_NAME \
-            -var=triton_namespace=$_TRITON_NAMESPACE
+            -var=triton_namespace=$_TRITON_NAMESPACE \
+            -var=machine_type=$_MACHINE_TYPE \
+            -var=accelerator_type=$_ACCELERATOR_TYPE \
+            -var=accelerator_count=$_ACCELERATOR_COUNT
 
   # Enable automatic sidecar injection
   - id: enable sidecar injection
@@ -132,8 +135,6 @@ steps:
       - 'CLOUDSDK_COMPUTE_ZONE=$_ZONE'
       - 'CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER_NAME'
 
-  # Build BigNLP Inference container
-
   # Copy models to the repository
   - id: copy models to Triton model repo
     name: gcr.io/cloud-builders/gcloud
@@ -157,7 +158,7 @@ steps:
           ksa=${_TRITON_SA_NAME}
           EOF
           kustomize edit set namespace $_TRITON_NAMESPACE
-          kustomize edit set  image "nvcr.io/nvidia/tritonserver:23.01-py3=gcr.io/$PROJECT_ID/bignlp-inference:22.08-py3"
+          kustomize edit set  image "nvcr.io/nvidia/tritonserver:22.01-py3=nvcr.io/nvidia/tritonserver:22.01-py3"
           kubectl kustomize ./
           kubectl apply -k ./
           kubectl wait pods --for=jsonpath='{.status.phase}'=Running -n $_TRITON_NAMESPACE $(kubectl get pod --selector="app=triton-server" -n $_TRITON_NAMESPACE --output jsonpath='{.items[0].metadata.name}') --timeout=600s
@@ -184,12 +185,6 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=$_ZONE'
       - 'CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER_NAME'
-
-  # # Build FasterTransformer converter image
-  # - id: build FasterTransformer converter image
-  #   name: 'gcr.io/cloud-builders/docker'
-  #   args: ['build', '-t', '$_JAX_TO_FT_IMAGE_URI', '$_FT_CONVERTER_PATH', '-f', '$_FT_CONVERTER_PATH/Dockerfile.$_DOCKERNAME']
-  #   waitFor: ['tf apply']
 
 options:
   dynamic_substitutions: true

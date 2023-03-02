@@ -46,6 +46,6 @@ configMapGenerator:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
-- name: nvcr.io/nvidia/tritonserver:23.01-py3
-  newName: gcr.io/jk-mlops-dev/bignlp-inference
-  newTag: 22.08-py3
+- name: nvcr.io/nvidia/tritonserver:22.01-py3
+  newName: nvcr.io/nvidia/tritonserver
+  newTag: 22.01-py3

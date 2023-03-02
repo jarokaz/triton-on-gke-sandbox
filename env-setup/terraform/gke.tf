@@ -68,6 +68,8 @@ module "gke" {
     {
       name                      = "triton-node-pool" 
       machine_type              = var.machine_type 
+      accelerator_type          = var.accelerator_type
+      accelerator_count         = var.accelerator_count
       node_locations            = var.zone
       min_count                 = var.triton_node_count
       max_count                 = var.triton_node_count

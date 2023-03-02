@@ -118,11 +118,17 @@ variable "max_pods_per_node" {
     default     = 110 
 }
 
-
 variable "machine_type" {
-    description = "The a2 machine type for the Triton node pool"
-    default = "a2-highgpu-1g"
+    description = "The machine type for the Triton node pool"
+    default = "n1-standard-4"
 }
 
+variable "accelerator_type" {
+    description = "Type of accelerator (GPUs) for the Triton node pool"
+    default = "nvidia-tesla-t4"
+}
 
-
+variable "accelerator_count" {
+    description = "Number of accelerator(s) (GPUs) for the Triton node pool"
+    default = "1"
+}

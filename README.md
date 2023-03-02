@@ -3,10 +3,6 @@
 
 This repository compiles prescriptive guidance and reference architecture for deploying NVIDIA Triton Inference Server on Google Kubernetes Engine (GKE)
 
-
-
-[TBD]
-
 ## Environment setup
 
 This section outlines the steps to configure Google Cloud environment required to run the workflow demonstrated in this repo:
@@ -93,10 +89,7 @@ Environment provisioning is done using a Cloud Build job that runs Terraform scr
 - `GKE_CLUSTER_NAME` - the name of your cluster
 - `TRITON_SA_NAME` - the name for the service account that will be used as the Triton's workload identity
 - `TRITON_NAMESAPCE` - the name of a namespace where the solution's components are deployed
-- `FT_CONVERTER_PATH` - the location of FasterTransformer checkpoint converter scripts
-- `DOCKER_ARTIFACT_REPO` - the name of Docker repository in Artifact Registry to save images
-- `JAX_TO_FT_IMAGE_NAME` - the name of JAX to FasterTransformer docker image 
-- `JAX_TO_FT_IMAGE_URI` - the image URI of JAX to FasterTransformer docker image
+
 
 ```bash
 export PROJECT_ID=jk-mlops-dev
@@ -108,11 +101,6 @@ export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
 export TRITON_SA_NAME=triton-sa
 export TRITON_NAMESPACE=triton
-
-export FT_CONVERTER_PATH=/workspace/triton-on-gke-sandbox/converter/src
-export DOCKER_ARTIFACT_REPO="llms-on-gke"
-export JAX_TO_FT_IMAGE_NAME="jax-to-fastertransformer"
-export JAX_TO_FT_IMAGE_URI="gcr.io/"${PROJECT_ID}"/"${DOCKER_ARTIFACT_REPO}"/"${JAX_TO_FT_IMAGE_NAME}
 ```
 
 By default, the Terraform configuration uses Cloud Storage for the Terraform state. Set the following environment variables to the GCS location for the state.
@@ -134,7 +122,7 @@ Start provisioning by using Cloud Build job to run Terraform and provision resou
 gcloud builds submit \
   --region $REGION \
   --config cloudbuild.provision.yaml \
-  --substitutions _TF_STATE_BUCKET=$TF_STATE_BUCKET,_TF_STATE_PREFIX=$TF_STATE_PREFIX,_REGION=$REGION,_ZONE=$ZONE,_NETWORK_NAME=$NETWORK_NAME,_SUBNET_NAME=$SUBNET_NAME,_GCS_BUCKET_NAME=$GCS_BUCKET_NAME,_GKE_CLUSTER_NAME=$GKE_CLUSTER_NAME,_TRITON_SA_NAME=$TRITON_SA_NAME,_TRITON_NAMESPACE=$TRITON_NAMESPACE,_DOCKERNAME=$JAX_TO_FT_IMAGE_NAME,_JAX_TO_FT_IMAGE_URI=$JAX_TO_FT_IMAGE_URI,_FT_CONVERTER_PATH=$FT_CONVERTER_PATH \
+  --substitutions _TF_STATE_BUCKET=$TF_STATE_BUCKET,_TF_STATE_PREFIX=$TF_STATE_PREFIX,_REGION=$REGION,_ZONE=$ZONE,_NETWORK_NAME=$NETWORK_NAME,_SUBNET_NAME=$SUBNET_NAME,_GCS_BUCKET_NAME=$GCS_BUCKET_NAME,_GKE_CLUSTER_NAME=$GKE_CLUSTER_NAME,_TRITON_SA_NAME=$TRITON_SA_NAME,_TRITON_NAMESPACE=$TRITON_NAMESPACE,_MACHINE_TYPE=$MACHINE_TYPE,_ACCELERATOR_TYPE=$ACCELERATOR_TYPE,_ACCELERATOR_COUNT=$ACCELERATOR_COUNT \
   --timeout "2h" \
   --machine-type=e2-highcpu-32 \
   --quiet
@@ -167,7 +155,7 @@ Run Triton server locally
 ```
 docker run -it --rm --net=host  \
 -e ISTIO_GATEWAY_IP_ADDRESS=${ISTIO_GATEWAY_IP_ADDRESS} \
-nvcr.io/nvidia/tritonserver:22.08-py3-sdk
+nvcr.io/nvidia/tritonserver:22.01-py3-sdk
 ```
 
 After the container starts execute the following command from the containers command line:
@@ -190,41 +178,4 @@ gcloud builds submit \
   --timeout "2h" \
   --machine-type=e2-highcpu-32 \
   --quiet
-```
-
-## TO BE REMOVED
-
-
-### Accessing NVIDIA bignlp-container
-
-#### Sign in to NGC
-
-https://ngc.nvidia.com/signin
-
-- Organization is ea-participants
-
-#### Authorize docker to access NGC Private Registry
-
-- Get API key
-https://ngc.nvidia.com/setup/api-key 
-
-- Authorize docker
-
-```bash
-
-docker login nvcr.io
-
-Username: $oauthtoken
-Password: Your key
-
-```
-
-#### Push the container to Container registry 
-
-```bash
-docker pull nvcr.io/ea-bignlp/bignlp-inference:22.08-py3
-
-docker tag nvcr.io/ea-bignlp/bignlp-inference:22.08-py3 gcr.io/$PROJECT_ID/bignlp-inference:22.08-py3
-
-docker push gcr.io/$PROJECT_ID/bignlp-inference:22.08-py3
 ```
