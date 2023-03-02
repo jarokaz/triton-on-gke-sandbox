@@ -99,7 +99,7 @@ export GKE_CLUSTER_NAME=jk-ft-gke
 export TRITON_SA_NAME=triton-sa
 export TRITON_NAMESPACE=triton
 export MACHINE_TYPE=n1-standard-4
-export ACCELERATOR_TYPE=NVIDIA_TESLA_T4
+export ACCELERATOR_TYPE=nvidia-tesla-t4
 export ACCELERATOR_COUNT=1
 ```
 

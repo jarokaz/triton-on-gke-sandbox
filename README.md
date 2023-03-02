@@ -89,6 +89,9 @@ Environment provisioning is done using a Cloud Build job that runs Terraform scr
 - `GKE_CLUSTER_NAME` - the name of your cluster
 - `TRITON_SA_NAME` - the name for the service account that will be used as the Triton's workload identity
 - `TRITON_NAMESAPCE` - the name of a namespace where the solution's components are deployed
+- `MACHINE_TYPE` - The machine type for the Triton GPU node pool (default: `n1-standard-4`)
+- `ACCELERATOR_TYPE` - Type of accelerator (GPUs) for the Triton node pool (default: `nvidia-tesla-t4`)
+- `ACCELERATOR_COUNT` - Number of accelerator(s) (GPUs) for the Triton node pool (default: `1`)
 
 
 ```bash
@@ -101,6 +104,9 @@ export GCS_BUCKET_NAME=jk-triton-repository
 export GKE_CLUSTER_NAME=jk-ft-gke
 export TRITON_SA_NAME=triton-sa
 export TRITON_NAMESPACE=triton
+export MACHINE_TYPE=n1-standard-4
+export ACCELERATOR_TYPE=nvidia-tesla-t4
+export ACCELERATOR_COUNT=1
 ```
 
 By default, the Terraform configuration uses Cloud Storage for the Terraform state. Set the following environment variables to the GCS location for the state.
