@@ -1,26 +1,9 @@
 
-# Serving Large Language Models with NVIDIA FasterTransformer and Triton Inference Server
+# Deploying NVIDIA Triton Server on GKE
 
-This repository compiles prescriptive guidance and code sample to serve Large Language Models (LLM) such as [UL2](https://ai.googleblog.com/2022/10/ul2-20b-open-source-unified-language.html) on a Google Kubernetes Engine (GKE) cluster with GPUs running NVIDIA Triton Inference Server with FasterTransformer backend.
+This repository compiles prescriptive guidance and reference architecture for deploying NVIDIA Triton Inference Server on Google Kubernetes Engine (GKE)
 
-- [NVIDIA Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server) is an open-source inference serving solution from NVIDIA to simplify and standardize the inference serving process supporting multiple frameworks and optimizations for both CPUs and GPUs.
 
-- [NVIDIA FasterTransformer](https://github.com/NVIDIA/FasterTransformer/) library implements an accelerated engine for the inference of transformer-based models, spanning multiple GPUs and nodes in a distributed manner.
-
-## High Level Flow
-
-The solution demonstrates deploying the UL2 (20B) model on a GKE cluster with GPUs. Assuming, you have JAX based checkpoints of a [pre-trained/fine-tuned UL2 model](https://github.com/google-research/google-research/tree/master/ul2#checkpoints), the workflow has following steps:
-
-1. Set up the environment running Triton server on GKE cluster
-2. Convert JAX checkpoint to FasterTransformer checkpoint
-3. Serve the resultant model on GPUs using NVIDIA Triton Inference server with FasterTransformer backend
-4. Run evaluation script with test instances to compute model eval metrics
-
-NOTE: Refer to this [solution accelerator](https://github.com/GoogleCloudPlatform/t5x-on-vertex-ai) for fine-tuning UL2 model with custom datasets using [T5X framework](https://github.com/google-research/t5x).
-
-![flow](/images/flow.png)
-
-### Repository Structure
 
 [TBD]
 
