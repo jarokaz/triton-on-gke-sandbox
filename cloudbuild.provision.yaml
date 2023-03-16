@@ -175,6 +175,7 @@ steps:
       - -c
       - |
           set -x
+          sleep 60
           kubectl get pods -n $_TRITON_NAMESPACE
           kubectl get services -n $_TRITON_NAMESPACE
           # echo $(kubectl get services -n $_TRITON_NAMESPACE -o=jsonpath='{.items[?(@.metadata.name=="istio-ingressgateway")].spec.clusterIP}')
