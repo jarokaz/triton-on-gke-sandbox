@@ -26,7 +26,7 @@ module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google"
   project_id                 = data.google_project.project.project_id
   name                       = var.cluster_name
-  release_channel            = "REGULAR"
+  release_channel            = var.gke_release_channel
   regional                   = false 
   zones                      = [var.zone]
   network                    = google_compute_network.cluster_network.name
@@ -147,7 +147,7 @@ module "asm" {
   enable_cni                = false
   enable_fleet_registration = true
   enable_mesh_feature       = false 
-  channel                   = "stable"
+  channel                   = var.asm_release_channel
 }
 
 

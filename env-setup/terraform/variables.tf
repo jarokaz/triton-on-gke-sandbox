@@ -132,3 +132,13 @@ variable "accelerator_count" {
     description = "Number of accelerator(s) (GPUs) for the Triton node pool"
     default = "1"
 }
+
+variable "gke_release_channel" {
+    description = "GKE release channel"
+    default = "STABLE"
+}
+
+variable "asm_release_channel" {
+    description = "GKE release channel"
+    default = "stable"
+}

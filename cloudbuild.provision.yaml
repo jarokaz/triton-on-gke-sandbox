@@ -177,11 +177,11 @@ steps:
           set -x
           kubectl get pods -n $_TRITON_NAMESPACE
           kubectl get services -n $_TRITON_NAMESPACE
-          echo $(kubectl get services -n $_TRITON_NAMESPACE -o=jsonpath='{.items[?(@.metadata.name=="istio-ingressgateway")].spec.clusterIP}')
-          # echo $(kubectl get services -n $_TRITON_NAMESPACE -o=jsonpath='{.items[?(@.metadata.name=="istio-ingressgateway")].status.loadBalancer.ingress[0].ip}') | xargs -I istio_ip_addr curl -v istio_ip_addr/v2/health/ready
-          kubectl port-forward -n $_TRITON_NAMESPACE $(kubectl get pod --selector="app=triton-server" -n $_TRITON_NAMESPACE --output jsonpath='{.items[0].metadata.name}') 8000:8000 &
-          sleep 60
-          curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/v2/health/ready
+          # echo $(kubectl get services -n $_TRITON_NAMESPACE -o=jsonpath='{.items[?(@.metadata.name=="istio-ingressgateway")].spec.clusterIP}')
+          echo $(kubectl get services -n $_TRITON_NAMESPACE -o=jsonpath='{.items[?(@.metadata.name=="istio-ingressgateway")].status.loadBalancer.ingress[0].ip}') | xargs -I istio_ip_addr curl -v istio_ip_addr/v2/health/ready
+          # kubectl port-forward -n $_TRITON_NAMESPACE $(kubectl get pod --selector="app=triton-server" -n $_TRITON_NAMESPACE --output jsonpath='{.items[0].metadata.name}') 8000:8000 &
+          # sleep 60
+          # curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/v2/health/ready
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=$_ZONE'
       - 'CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER_NAME'

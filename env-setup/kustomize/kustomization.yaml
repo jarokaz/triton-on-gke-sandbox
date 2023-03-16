@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 
 namespace: triton
-
 
 resources:
 - triton-deployment.yaml
@@ -43,9 +44,4 @@ configMapGenerator:
 - envs:
   - configs.env
   name: triton-configs
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-images:
-- name: nvcr.io/nvidia/tritonserver:22.01-py3
-  newName: nvcr.io/nvidia/tritonserver
-  newTag: 22.01-py3
+

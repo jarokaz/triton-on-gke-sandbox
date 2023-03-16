@@ -54,14 +54,14 @@ spec:
               name: metrics
           livenessProbe:
             failureThreshold: 60
-            initialDelaySeconds: 3600
+            initialDelaySeconds: 15
             periodSeconds: 5
             httpGet:
               path: /v2/health/live
               port: http
           readinessProbe:
             failureThreshold: 60
-            initialDelaySeconds: 3600
+            initialDelaySeconds: 15
             periodSeconds: 5
             httpGet:
               path: /v2/health/ready
