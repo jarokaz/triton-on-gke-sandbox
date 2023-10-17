@@ -118,7 +118,10 @@ steps:
       - -c
       - |
           cd /workspace/triton-on-gke-sandbox/env-setup
-          kubectl apply -n $_TRITON_NAMESPACE -f istio-ingressgateway
+          # for Kubernetes version <= 1.22
+          #kubectl apply -n $_TRITON_NAMESPACE -f istio-ingressgateway
+          # for Kubernetes version > 1.22
+          kubectl apply -n $_TRITON_NAMESPACE -f istio-ingressgateway/autoscalingv2
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=$_ZONE'
       - 'CLOUDSDK_CONTAINER_CLUSTER=$_GKE_CLUSTER_NAME'
